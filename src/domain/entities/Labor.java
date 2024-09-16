@@ -1,6 +1,7 @@
 package domain.entities;
 
 public class Labor extends Component{
+    private int id;
     private double hourlyRate;
     private double workHours;
     private double workerProductivity;
@@ -11,6 +12,35 @@ public class Labor extends Component{
         this.hourlyRate = hourlyRate;
         this.workHours = workHours;
         this.workerProductivity = workerProductivity;
+    }
+    public Labor(int id){
+        this.id=id;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public double getHourlyRate() {
+        return hourlyRate;
+    }
+
+    public void setHourlyRate(double hourlyRate) {
+        this.hourlyRate = hourlyRate;
+    }
+
+    public double getWorkHours() {
+        return workHours;
+    }
+
+    public void setWorkHours(double workHours) {
+        this.workHours = workHours;
     }
 
     public Labor() {
@@ -42,7 +72,9 @@ public class Labor extends Component{
 
     @Override
     public String toString() {
-        return "WorkForce{" +
+        return super.toString()+"\n"+
+                "Labor{" +
+                "id=" + id +
                 "hourlyRate=" + hourlyRate +
                 ", workHours=" + workHours +
                 ", workerProductivity=" + workerProductivity +

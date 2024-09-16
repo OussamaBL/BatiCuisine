@@ -6,13 +6,24 @@ public class Quote {
     private int id;
     private double estimatedAmount;
     private LocalDate issueDate;
+    private LocalDate dateValidity;
+
+    public LocalDate getDateValidity() {
+        return dateValidity;
+    }
+
+    public void setDateValidity(LocalDate dateValidity) {
+        this.dateValidity = dateValidity;
+    }
+
     private boolean isAccepted;
     private Project project;
 
-    public Quote(int id, double estimatedAmount, LocalDate issueDate, boolean isAccepted, Project project) {
+    public Quote(int id, double estimatedAmount, LocalDate issueDate,LocalDate dateValidity, boolean isAccepted, Project project) {
         this.id = id;
         this.estimatedAmount = estimatedAmount;
         this.issueDate = issueDate;
+        this.dateValidity = dateValidity;
         this.isAccepted = isAccepted;
         this.project = project;
     }
@@ -66,6 +77,7 @@ public class Quote {
                 "id=" + id +
                 ", estimatedAmount=" + estimatedAmount +
                 ", issueDate=" + issueDate +
+                ", dateValidity=" + dateValidity +
                 ", isAccepted=" + isAccepted +
                 ", project=" + project +
                 '}';

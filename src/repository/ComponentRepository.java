@@ -20,7 +20,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
     @Override
     public Component save(Component component) {
         try {
-            String componentQuery = "INSERT INTO component (name, componenttype, vatrate) VALUES (?, ?, ?)";
+            String componentQuery = "INSERT INTO components (name, componenttype, vatrate) VALUES (?, ?, ?)";
             PreparedStatement stmt = cnx.prepareStatement(componentQuery,Statement.RETURN_GENERATED_KEYS);
             stmt.setString(1, component.getName());
             stmt.setString(2, component.getComponentType());
@@ -47,7 +47,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
                 laborStmt.executeUpdate();
             } else if (component instanceof Material) {
                 Material material = (Material) component;
-                String materialQuery = "INSERT INTO material (component_id, unitcost, quantity, transportcost, qualitycoefficient) VALUES (?, ?, ?, ?, ?)";
+                String materialQuery = "INSERT INTO materials (component_id, unitcost, quantity, transportcost, qualitycoefficient) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement materialStmt = cnx.prepareStatement(materialQuery);
                 materialStmt.setInt(1, componentId);
                 materialStmt.setDouble(2, material.getunitCost());
@@ -66,7 +66,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
     @Override
     public Optional<Component> findById(Component component) {
         try {
-            String componentQuery = "SELECT * FROM component WHERE id = ?";
+            String componentQuery = "SELECT * FROM components WHERE id = ?";
             PreparedStatement stmt = cnx.prepareStatement(componentQuery);
             stmt.setInt(1, component.getId());
             ResultSet rs = stmt.executeQuery();
@@ -88,12 +88,14 @@ public class ComponentRepository implements ComponentInterface<Component> {
                         double hourlyRate = laborRs.getDouble("hourlyrate");
                         int workHours = laborRs.getInt("workhours");
                         double workerProductivity = laborRs.getDouble("workerproductivity");
+                        int id = laborRs.getInt("id");
 
                         cmp = new Labor(name,componentType, vatRate, hourlyRate, workHours, workerProductivity);
+                        cmp.setId(id);
                     }
 
                 } else if (componentType.equals("MATERIAL")) {
-                    String materialQuery = "SELECT * FROM material WHERE component_id = ?";
+                    String materialQuery = "SELECT * FROM materials WHERE component_id = ?";
                     stmt = cnx.prepareStatement(materialQuery);
                     stmt.setInt(1, component.getId());
                     ResultSet materialRs = stmt.executeQuery();
@@ -103,8 +105,9 @@ public class ComponentRepository implements ComponentInterface<Component> {
                         int quantity = materialRs.getInt("quantity");
                         double transportCost = materialRs.getDouble("transportcost");
                         double qualityCoefficient = materialRs.getDouble("qualitycoefficient");
-
+                        int id = materialRs.getInt("id");
                         cmp = new Material(name,componentType, vatRate, unitCost, quantity, transportCost, qualityCoefficient);
+                        cmp.setId(id);
                     }
                 }
 
@@ -124,7 +127,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
         List<Component> components = new ArrayList<>();
 
         try {
-            String componentQuery = "SELECT * FROM component";
+            String componentQuery = "SELECT * FROM components";
             PreparedStatement componentStmt = cnx.prepareStatement(componentQuery);
             ResultSet rs = componentStmt.executeQuery();
 
@@ -151,7 +154,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
                     }
 
                 } else if (componentType.equals("MATERIAL")) {
-                    String materialQuery = "SELECT * FROM material WHERE component_id = ?";
+                    String materialQuery = "SELECT * FROM materials WHERE component_id = ?";
                     PreparedStatement materialStmt = cnx.prepareStatement(materialQuery);
                     materialStmt.setInt(1, componentId);
                     ResultSet materialRs = materialStmt.executeQuery();
@@ -180,7 +183,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
     @Override
     public Component update(Component component) {
         try {
-            String updateComponentQuery = "UPDATE component SET name = ?, vatrate = ? WHERE id = ?";
+            String updateComponentQuery = "UPDATE components SET name = ?, vatrate = ? WHERE id = ?";
             PreparedStatement stmt = cnx.prepareStatement(updateComponentQuery);
             stmt.setString(1, component.getName());
             stmt.setDouble(2, component.getVatRate());
@@ -199,7 +202,7 @@ public class ComponentRepository implements ComponentInterface<Component> {
 
                 laborStmt.executeUpdate();
             } else if (component instanceof Material) {
-                String updateMaterialQuery = "UPDATE material SET unitcost = ?, quantity = ?, transportcost = ?, qualitycoefficient = ? WHERE component_id = ?";
+                String updateMaterialQuery = "UPDATE materials SET unitcost = ?, quantity = ?, transportcost = ?, qualitycoefficient = ? WHERE component_id = ?";
                 PreparedStatement materialStmt = cnx.prepareStatement(updateMaterialQuery);
                 Material material = (Material) component;
                 materialStmt.setDouble(1, material.getunitCost());
@@ -227,13 +230,13 @@ public class ComponentRepository implements ComponentInterface<Component> {
                 laborStmt.setInt(1, component.getId());
                 laborStmt.executeUpdate();
             } else if (component instanceof Material) {
-                String deleteMaterialQuery = "DELETE FROM material WHERE component_id = ?";
+                String deleteMaterialQuery = "DELETE FROM materials WHERE component_id = ?";
                 PreparedStatement materialStmt = cnx.prepareStatement(deleteMaterialQuery);
                 materialStmt.setInt(1, component.getId());
                 materialStmt.executeUpdate();
             }
 
-            String deleteComponentQuery = "DELETE FROM component WHERE id = ?";
+            String deleteComponentQuery = "DELETE FROM components WHERE id = ?";
             PreparedStatement stmt = cnx.prepareStatement(deleteComponentQuery);
             stmt.setInt(1, component.getId());
             int rowsAffected = stmt.executeUpdate();

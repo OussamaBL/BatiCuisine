@@ -1,6 +1,7 @@
 package domain.entities;
 
 public class Material extends Component{
+    private  int id;
     private double unitCost;
     private double quantity;
     private double transportCost;
@@ -12,6 +13,35 @@ public class Material extends Component{
         this.unitCost = unitCost;
         this.quantity = quantity;
         this.transportCost = transportCost;
+        this.qualityCoefficient = qualityCoefficient;
+    }
+    public Material(int id){
+        this.id=id;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public double getUnitCost() {
+        return unitCost;
+    }
+
+    public void setUnitCost(double unitCost) {
+        this.unitCost = unitCost;
+    }
+
+    public double getQualityCoefficient() {
+        return qualityCoefficient;
+    }
+
+    public void setQualityCoefficient(double qualityCoefficient) {
         this.qualityCoefficient = qualityCoefficient;
     }
 
@@ -52,7 +82,8 @@ public class Material extends Component{
 
     @Override
     public String toString() {
-        return "Material{" +
+        return super.toString()+"\n"+
+                "Material{" +
                 "unitCost=" + unitCost +
                 ", quantity=" + quantity +
                 ", transportCost=" + transportCost +

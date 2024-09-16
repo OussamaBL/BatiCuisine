@@ -1,4 +1,7 @@
 import config.connexion;
+import domain.entities.Component;
+import domain.entities.Labor;
+import repository.ComponentRepository;
 
 import java.sql.Connection;
 
@@ -6,7 +9,6 @@ import java.sql.Connection;
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
     public static void main(String[] args) {
-        connexion cnx = new connexion();
-        connexion.getInstance();
+        ComponentRepository crp=new ComponentRepository();
     }
 }
