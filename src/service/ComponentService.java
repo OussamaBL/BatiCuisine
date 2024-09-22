@@ -22,6 +22,10 @@ public class ComponentService {
     public List<Component> readAll(){
         return crp.findAll();
     }
+    public List<Component> findAllType(String type){
+        return crp.findAllType(type);
+    }
+
     public Component update(Component component){
         return crp.update(component);
     }

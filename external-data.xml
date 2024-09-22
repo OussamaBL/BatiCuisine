@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data>
+  <object-set>
+    <table path="Bati_Cuisine.public.components">
+      <table path="Bati_Cuisine.public.components" name="virtual_foreign_key_name" from="" to=""/>
+    </table>
+  </object-set>
+</data>

@@ -13,7 +13,7 @@ public class connexion {
 
     public connexion() {
         this.pilote = "org.postgresql.Driver";
-        this.url = "jdbc:postgresql://localhost:5432/BatiCuisine";
+        this.url = "jdbc:postgresql://localhost:5432/Bati_Cuisine";
         this.login = "BatiCuisine";
         this.password = "";
     }

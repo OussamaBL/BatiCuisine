@@ -5,12 +5,21 @@ public class Component {
     private String name;
     private String componentType;
     private double vatRate;
+    private Project project;
 
+    public Project getProject() {
+        return project;
+    }
 
-    public Component(String name, String componentType, double vatRate) {
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public Component(String name, String componentType, double vatRate, Project project) {
         this.name = name;
         this.componentType = componentType;
         this.vatRate = vatRate;
+        this.project = project;
     }
 
 
@@ -57,6 +66,7 @@ public class Component {
                 ", name='" + name + '\'' +
                 ", componentType='" + componentType + '\'' +
                 ", vatRate=" + vatRate +
-                '}';
+                ", project_id=" + project.getId() +
+                project.toString();
     }
 }

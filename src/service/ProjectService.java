@@ -35,4 +35,8 @@ public class ProjectService {
     public void saveClientProject(Client client, Project project) {
         this.prp.saveClientProject(client,project);
     }
+
+    public Project findProjectByName(String name) {
+        return this.prp.findProjectByName(name);
+    }
 }

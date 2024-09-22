@@ -6,10 +6,7 @@ import domain.entities.Project;
 import exceptions.ProjectsNotFoundException;
 import repository.interfaces.ProjectInterface;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +19,7 @@ public class ProjectRepository implements ProjectInterface<Project> {
     @Override
     public Project save(Project project) {
         String sql = "INSERT INTO projects (projectName, profitMargin, totalCost, status, client_id) VALUES (?, ?, ?, ?::projectStatus, ?);";
-        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, project.getprojectname());
             preparedStatement.setDouble(2, project.getprofitMargin());
             preparedStatement.setDouble(3, project.gettotalCost());
@@ -33,12 +30,20 @@ public class ProjectRepository implements ProjectInterface<Project> {
             if (affectedRows == 0) {
                 throw new SQLException("Creating project failed, no rows affected.");
             }
+            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    project.setId(generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Creating project failed, no ID obtained.");
+                }
+            }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
         return project;
     }
 
+    @Override
     public void saveClientProject(Client client, Project project) {
         ClientRepository clientRepository = new ClientRepository();
         Client savedClient = clientRepository.save(client);
@@ -138,5 +143,26 @@ public class ProjectRepository implements ProjectInterface<Project> {
             System.out.println(e.getMessage());
         }
         return false;
+    }
+
+    public Project findProjectByName(String name) {
+        String sql = "SELECT id , projectName FROM projects WHERE projectName = ?";
+        Project project = new Project();
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setString(1, name);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                project.setId(id);
+                project.setprojectname(resultSet.getString("projectName"));
+            } else {
+                throw new ProjectsNotFoundException("Project not found");
+            }
+
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+
+        return project;
     }
 }

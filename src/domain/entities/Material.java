@@ -8,12 +8,13 @@ public class Material extends Component{
     private double qualityCoefficient;
 
 
-    public Material(String name, String componentType, double vatRate, double unitCost, double quantity, double transportCost, double qualityCoefficient) {
-        super(name, componentType, vatRate);
+    public Material(String name, String componentType, double vatRate,Project project, double unitCost, double quantity, double transportCost, double qualityCoefficient) {
+        super(name, componentType, vatRate,project);
         this.unitCost = unitCost;
         this.quantity = quantity;
         this.transportCost = transportCost;
         this.qualityCoefficient = qualityCoefficient;
+
     }
     public Material(int id){
         this.id=id;
@@ -83,7 +84,9 @@ public class Material extends Component{
     @Override
     public String toString() {
         return super.toString()+"\n"+
+
                 "Material{" +
+                super.toString()+
                 "unitCost=" + unitCost +
                 ", quantity=" + quantity +
                 ", transportCost=" + transportCost +

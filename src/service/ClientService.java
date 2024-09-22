@@ -13,8 +13,8 @@ public class ClientService {
         this.clientRepository = clientRepository;
     }
 
-    public void save(Client client) {
-        clientRepository.save(client);
+    public Client save(Client client) {
+        return clientRepository.save(client);
     }
 
     public Optional<Client> findById(Client client) {
@@ -32,4 +32,12 @@ public class ClientService {
     public void delete(Client client) {
         clientRepository.delete(client);
     }
+
+    public Optional<Client> findByName(String name) {
+        if(name == null || name.isEmpty())
+            throw new RuntimeException("name is null");
+        else return this.clientRepository.findByName(name);
+
+    }
+
 }

@@ -4,6 +4,7 @@ import config.connexion;
 import domain.entities.Component;
 import domain.entities.Labor;
 import domain.entities.Material;
+import domain.entities.Project;
 import repository.interfaces.ComponentInterface;
 
 import java.sql.*;
@@ -18,232 +19,232 @@ public class ComponentRepository implements ComponentInterface<Component> {
         this.cnx= connexion.getInstance();
     }
     @Override
-    public Component save(Component component) {
-        try {
-            String componentQuery = "INSERT INTO components (name, componenttype, vatrate) VALUES (?, ?, ?)";
-            PreparedStatement stmt = cnx.prepareStatement(componentQuery,Statement.RETURN_GENERATED_KEYS);
-            stmt.setString(1, component.getName());
-            stmt.setString(2, component.getComponentType());
-            stmt.setDouble(3, component.getVatRate());
-
-            int affectedRows = stmt.executeUpdate();
-            if (affectedRows == 0) throw new SQLException("Inserting component failed, no rows affected.");
-
-            ResultSet generatedKeys = stmt.getGeneratedKeys();
-            int componentId;
-            if (generatedKeys.next()) {
-                componentId = generatedKeys.getInt(1);
+    public Component save(Component entity) {
+        try{
+            String query="";
+            if (entity instanceof Labor) {
+                query = "insert into labors (name, vat_rate,component_type,project_id, hourlyRate, workHours, workerProductivity) VALUES (?, ?,?, ?, ?, ?,?)";
+            } else if (entity instanceof Material) {
+                query = "insert into materials (name, vat_rate,component_type,project_id, unitcost, quantity, transportcost, qualitycoefficient) values (?, ?, ?, ?, ?, ?,?,?)";
             }
-            else throw new SQLException("Inserting component failed, no ID obtained.");
 
-            if (component instanceof Labor) {
-                Labor labor = (Labor) component;
-                String laborQuery = "INSERT INTO labor (component_id, hourlyrate, workhours, workerproductivity) VALUES (?, ?, ?, ?)";
-                PreparedStatement laborStmt = cnx.prepareStatement(laborQuery);
-                laborStmt.setInt(1, componentId);
-                laborStmt.setDouble(2, labor.gethourlyRate());
-                laborStmt.setDouble(3, labor.getworkHours());
-                laborStmt.setDouble(4, labor.getWorkerProductivity());
-                laborStmt.executeUpdate();
-            } else if (component instanceof Material) {
-                Material material = (Material) component;
-                String materialQuery = "INSERT INTO materials (component_id, unitcost, quantity, transportcost, qualitycoefficient) VALUES (?, ?, ?, ?, ?)";
-                PreparedStatement materialStmt = cnx.prepareStatement(materialQuery);
-                materialStmt.setInt(1, componentId);
-                materialStmt.setDouble(2, material.getunitCost());
-                materialStmt.setDouble(3, material.getQuantity());
-                materialStmt.setDouble(4, material.getTransportCost());
-                materialStmt.setDouble(5, material.getqualityCoefficient());
-                materialStmt.executeUpdate();
+            PreparedStatement pst=cnx.prepareStatement(query);
+            pst.setString(1, entity.getName());
+            pst.setDouble(2, entity.getVatRate());
+            pst.setString(3,entity.getComponentType());
+            pst.setInt(4,entity.getProject().getId());
+            if (entity instanceof Labor) {
+                pst.setDouble(5,((Labor) entity).getHourlyRate());
+                pst.setDouble(6, ((Labor) entity).getworkHours());
+                pst.setDouble(7, ((Labor) entity).getWorkerProductivity());
+            } else if (entity instanceof Material) {
+                pst.setDouble(5,((Material) entity).getUnitCost());
+                pst.setDouble(6, ((Material) entity).getQuantity());
+                pst.setDouble(7, ((Material) entity).getTransportCost());
+                pst.setDouble(8, ((Material) entity).getqualityCoefficient());
+
             }
-            return component;
+            pst.executeUpdate();
+            return entity;
         } catch (SQLException ex) {
-            throw new RuntimeException("Error executing insert", ex);
+           throw new RuntimeException("Error inserted : "+ex.getMessage());
         }
 
     }
 
     @Override
-    public Optional<Component> findById(Component component) {
-        try {
-            String componentQuery = "SELECT * FROM components WHERE id = ?";
-            PreparedStatement stmt = cnx.prepareStatement(componentQuery);
-            stmt.setInt(1, component.getId());
+    public Optional<Component> findById(Component entity) {
+        String query = "SELECT c.id, c.name, c.vatRate,c.componentType,c.project_id " +
+                "       l.hourlyrate, l.workHours, l.workerProductivity, " +
+                "       m.unitcost, m.quantity, m.transportcost, m.qualitycoefficient " +
+                "FROM composants c " +
+                "LEFT JOIN labors l ON c.id = l.id " +
+                "LEFT JOIN materials m ON c.id = m.id " +
+                "WHERE c.id = ?";
+
+        try (PreparedStatement stmt = cnx.prepareStatement(query)) {
+            stmt.setInt(1, entity.getId());
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                String name = rs.getString("name");
-                String componentType = rs.getString("componenttype"); // Assuming it's a string representing the type
-                double vatRate = rs.getDouble("vatrate");
-
-                Component cmp = null;
+                String name = rs.getString(2);
+                double vatRate = rs.getDouble(3);
+                int id = rs.getInt(1);
+                String componentType = rs.getString(4);
 
                 if (componentType.equals("LABOR")) {
-                    String laborQuery = "SELECT * FROM labor WHERE component_id = ?";
-                    stmt = cnx.prepareStatement(laborQuery);
-                    stmt.setInt(1, component.getId());
-                    ResultSet laborRs = stmt.executeQuery();
-
-                    if (laborRs.next()) {
-                        double hourlyRate = laborRs.getDouble("hourlyrate");
-                        int workHours = laborRs.getInt("workhours");
-                        double workerProductivity = laborRs.getDouble("workerproductivity");
-                        int id = laborRs.getInt("id");
-
-                        cmp = new Labor(name,componentType, vatRate, hourlyRate, workHours, workerProductivity);
-                        cmp.setId(id);
-                    }
-
-                } else if (componentType.equals("MATERIAL")) {
-                    String materialQuery = "SELECT * FROM materials WHERE component_id = ?";
-                    stmt = cnx.prepareStatement(materialQuery);
-                    stmt.setInt(1, component.getId());
-                    ResultSet materialRs = stmt.executeQuery();
-
-                    if (materialRs.next()) {
-                        double unitCost = materialRs.getDouble("unitcost");
-                        int quantity = materialRs.getInt("quantity");
-                        double transportCost = materialRs.getDouble("transportcost");
-                        double qualityCoefficient = materialRs.getDouble("qualitycoefficient");
-                        int id = materialRs.getInt("id");
-                        cmp = new Material(name,componentType, vatRate, unitCost, quantity, transportCost, qualityCoefficient);
-                        cmp.setId(id);
-                    }
+                    double hourlyRate = rs.getDouble(6);
+                    double workHours = rs.getDouble(7);
+                    double workerProductivity = rs.getDouble(8);
+                    Labor labor = new Labor(name, "LABOR", vatRate, new Project(rs.getInt(5)), hourlyRate, workHours, workerProductivity);
+                    labor.setId(id);
+                    return Optional.of(labor);
                 }
 
-                if (cmp != null) {
-                    return Optional.of(cmp);
+                if (componentType.equals("MATERIAL")) {
+                    double unitCost = rs.getDouble(6);
+                    double quantity = rs.getDouble(7);
+                    double transportCost = rs.getDouble(8);
+                    double qualityCoefficient = rs.getDouble(9);
+                    Material material = new Material(name, "MATERIAL", vatRate,new Project(rs.getInt(5)), unitCost, quantity, transportCost, qualityCoefficient);
+                    material.setId(id);
+                    return Optional.of(material);
                 }
             }
-            return Optional.empty();
-
         } catch (SQLException ex) {
             throw new RuntimeException("Error executing findById", ex);
         }
+        return Optional.empty();
+    }
+    public List<Component> findAllType(String type){
+        String query = "SELECT c.id, c.name, c.vatRate, c.componentType,c.project_id " +
+                "       l.hourlyrate, l.workHours, l.workerProductivity, " +
+                "       m.unitcost, m.quantity, m.transportcost, m.qualitycoefficient " +
+                "FROM composants c " +
+                "LEFT JOIN labors l ON c.id = l.id " +
+                "LEFT JOIN materials m ON c.id = m.id " +
+                "where c.componentType=? ";
+
+        List<Component> components = new ArrayList<>();
+
+        try (PreparedStatement stmt = cnx.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String name = rs.getString("name");
+                double vatRate = rs.getDouble("vatRate");
+                int id = rs.getInt("id");
+                String componentType = rs.getString("componentType");
+
+                if ("LABOR".equals(type)) {
+                    double hourlyRate = rs.getDouble("hourlyrate");
+                    double workHours = rs.getDouble("workHours");
+                    double workerProductivity = rs.getDouble("workerProductivity");
+
+                    Labor labor = new Labor(name, "LABOR", vatRate,new Project(rs.getInt("project_id")), hourlyRate, workHours, workerProductivity);
+                    labor.setId(id);
+                    components.add(labor);
+                } else if ("MATERIAL".equals(type)) {
+                    double unitCost = rs.getDouble("unitcost");
+                    double quantity = rs.getDouble("quantity");
+                    double transportCost = rs.getDouble("transportcost");
+                    double qualityCoefficient = rs.getDouble("qualitycoefficient");
+
+                    Material material = new Material(name, "MATERIAL", vatRate,new Project(rs.getInt("project_id")), unitCost, quantity, transportCost, qualityCoefficient);
+                    material.setId(id);
+                    components.add(material);
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error executing findAll", ex);
+        }
+        return components;
     }
 
     @Override
     public List<Component> findAll() {
+        String query = "SELECT c.id, c.name, c.vatRate, c.componentType,c.project_id " +
+                "       l.hourlyrate, l.workHours, l.workerProductivity, " +
+                "       m.unitcost, m.quantity, m.transportcost, m.qualitycoefficient " +
+                "FROM composants c " +
+                "LEFT JOIN labors l ON c.id = l.id " +
+                "LEFT JOIN materials m ON c.id = m.id";
+
         List<Component> components = new ArrayList<>();
 
-        try {
-            String componentQuery = "SELECT * FROM components";
-            PreparedStatement componentStmt = cnx.prepareStatement(componentQuery);
-            ResultSet rs = componentStmt.executeQuery();
+        try (PreparedStatement stmt = cnx.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                int componentId = rs.getInt("id");
                 String name = rs.getString("name");
-                String componentType = rs.getString("componenttype");
-                double vatRate = rs.getDouble("vatrate");
+                double vatRate = rs.getDouble("vatRate");
+                int id = rs.getInt("id");
+                String componentType = rs.getString("componentType");
 
-                Component component = null;
+                if ("LABOR".equals(componentType)) {
+                    double hourlyRate = rs.getDouble("hourlyrate");
+                    double workHours = rs.getDouble("workHours");
+                    double workerProductivity = rs.getDouble("workerProductivity");
 
-                if (componentType.equals("LABOR")) {
-                    String laborQuery = "SELECT * FROM labor WHERE component_id = ?";
-                    PreparedStatement laborStmt = cnx.prepareStatement(laborQuery);
-                    laborStmt.setInt(1, componentId);
-                    ResultSet laborRs = laborStmt.executeQuery();
+                    Labor labor = new Labor(name, "LABOR", vatRate,new Project(rs.getInt("project_id")), hourlyRate, workHours, workerProductivity);
+                    labor.setId(id);
+                    components.add(labor);
+                } else if ("MATERIAL".equals(componentType)) {
+                    double unitCost = rs.getDouble("unitcost");
+                    double quantity = rs.getDouble("quantity");
+                    double transportCost = rs.getDouble("transportcost");
+                    double qualityCoefficient = rs.getDouble("qualitycoefficient");
 
-                    if (laborRs.next()) {
-                        double hourlyRate = laborRs.getDouble("hourlyrate");
-                        int workHours = laborRs.getInt("workhours");
-                        double workerProductivity = laborRs.getDouble("workerproductivity");
-
-                        component = new Labor(name,componentType, vatRate, hourlyRate, workHours, workerProductivity);
-                    }
-
-                } else if (componentType.equals("MATERIAL")) {
-                    String materialQuery = "SELECT * FROM materials WHERE component_id = ?";
-                    PreparedStatement materialStmt = cnx.prepareStatement(materialQuery);
-                    materialStmt.setInt(1, componentId);
-                    ResultSet materialRs = materialStmt.executeQuery();
-
-                    if (materialRs.next()) {
-                        double unitCost = materialRs.getDouble("unitcost");
-                        int quantity = materialRs.getInt("quantity");
-                        double transportCost = materialRs.getDouble("transportcost");
-                        double qualityCoefficient = materialRs.getDouble("qualitycoefficient");
-
-                        component = new Material(name,componentType, vatRate, unitCost, quantity, transportCost, qualityCoefficient);
-                    }
-                }
-
-                if (component != null) {
-                    components.add(component);
+                    Material material = new Material(name, "MATERIAL", vatRate,new Project(rs.getInt("project_id")), unitCost, quantity, transportCost, qualityCoefficient);
+                    material.setId(id);
+                    components.add(material);
                 }
             }
-            return components;
-
         } catch (SQLException ex) {
             throw new RuntimeException("Error executing findAll", ex);
         }
+        return components;
     }
 
     @Override
-    public Component update(Component component) {
+    public Component update(Component entity) {
+        String updateComponentQuery = "UPDATE components SET name = ?, vatRate = ? WHERE id = ?";
+        String updateLaborQuery = "UPDATE labors SET hourlyrate = ?, workhourscount = ?, productivityrate = ? WHERE id = ?";
+        String updateMaterialQuery = "UPDATE materials SET unitcost = ?, quantity = ?, transportcost = ?, qualitycoefficient = ? WHERE id = ?";
+
         try {
-            String updateComponentQuery = "UPDATE components SET name = ?, vatrate = ? WHERE id = ?";
-            PreparedStatement stmt = cnx.prepareStatement(updateComponentQuery);
-            stmt.setString(1, component.getName());
-            stmt.setDouble(2, component.getVatRate());
-            stmt.setInt(3, component.getId());
-
-            stmt.executeUpdate();
-
-            if (component instanceof Labor) {
-                String updateLaborQuery = "UPDATE labor SET hourlyrate = ?, workhours = ?, workerproductivity = ? WHERE component_id = ?";
-                PreparedStatement laborStmt = cnx.prepareStatement(updateLaborQuery);
-                Labor labor = (Labor) component;
-                laborStmt.setDouble(1, labor.gethourlyRate());
-                laborStmt.setDouble(2, labor.getworkHours());
-                laborStmt.setDouble(3, labor.getWorkerProductivity());
-                laborStmt.setInt(4, component.getId());
-
-                laborStmt.executeUpdate();
-            } else if (component instanceof Material) {
-                String updateMaterialQuery = "UPDATE materials SET unitcost = ?, quantity = ?, transportcost = ?, qualitycoefficient = ? WHERE component_id = ?";
-                PreparedStatement materialStmt = cnx.prepareStatement(updateMaterialQuery);
-                Material material = (Material) component;
-                materialStmt.setDouble(1, material.getunitCost());
-                materialStmt.setDouble(2, material.getQuantity());
-                materialStmt.setDouble(3, material.getTransportCost());
-                materialStmt.setDouble(4, material.getqualityCoefficient());
-                materialStmt.setInt(5, component.getId());
-
-                materialStmt.executeUpdate();
+            try (PreparedStatement stmt = cnx.prepareStatement(updateComponentQuery)) {
+                stmt.setString(1, entity.getName());
+                stmt.setDouble(2, entity.getVatRate());
+                stmt.setInt(3, entity.getId());
+                stmt.executeUpdate();
             }
 
-            return component;
-
+            if (entity instanceof Labor) {
+                Labor labor = (Labor) entity;
+                try (PreparedStatement stmt = cnx.prepareStatement(updateLaborQuery)) {
+                    stmt.setDouble(1, labor.getHourlyRate());
+                    stmt.setDouble(2, labor.getWorkHours());
+                    stmt.setDouble(3, labor.getWorkerProductivity());
+                    stmt.setInt(4, labor.getId());
+                    stmt.executeUpdate();
+                }
+            } else if (entity instanceof Material) {
+                Material material = (Material) entity;
+                try (PreparedStatement stmt = cnx.prepareStatement(updateMaterialQuery)) {
+                    stmt.setDouble(1, material.getUnitCost());
+                    stmt.setDouble(2, material.getQuantity());
+                    stmt.setDouble(3, material.getTransportCost());
+                    stmt.setDouble(4, material.getQualityCoefficient());
+                    stmt.setInt(5, material.getId());
+                    stmt.executeUpdate();
+                }
+            }
         } catch (SQLException ex) {
-            throw new RuntimeException("Error updating component", ex);
+            throw new RuntimeException("Error executing update", ex);
         }
+        return entity;
     }
 
     @Override
-    public boolean delete(Component component) {
+    public boolean delete(Component entity) {
         try {
-            if (component instanceof Labor) {
-                String deleteLaborQuery = "DELETE FROM labor WHERE component_id = ?";
-                PreparedStatement laborStmt = cnx.prepareStatement(deleteLaborQuery);
-                laborStmt.setInt(1, component.getId());
-                laborStmt.executeUpdate();
-            } else if (component instanceof Material) {
-                String deleteMaterialQuery = "DELETE FROM materials WHERE component_id = ?";
-                PreparedStatement materialStmt = cnx.prepareStatement(deleteMaterialQuery);
-                materialStmt.setInt(1, component.getId());
-                materialStmt.executeUpdate();
+            if (entity instanceof Labor) {
+                String deleteLaborQuery = "DELETE FROM labors WHERE id = ?";
+                try (PreparedStatement stmt = cnx.prepareStatement(deleteLaborQuery)) {
+                    stmt.setInt(1, entity.getId());
+                    stmt.executeUpdate();
+                }
+            } else if (entity instanceof Material) {
+                String deleteMaterialQuery = "DELETE FROM materials WHERE id = ?";
+                try (PreparedStatement stmt = cnx.prepareStatement(deleteMaterialQuery)) {
+                    stmt.setInt(1, entity.getId());
+                    stmt.executeUpdate();
+                }
             }
-
-            String deleteComponentQuery = "DELETE FROM components WHERE id = ?";
-            PreparedStatement stmt = cnx.prepareStatement(deleteComponentQuery);
-            stmt.setInt(1, component.getId());
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-
         } catch (SQLException ex) {
-            throw new RuntimeException("Error deleting component", ex);
+            throw new RuntimeException("Error executing delete", ex);
         }
+        return true;
     }
 }

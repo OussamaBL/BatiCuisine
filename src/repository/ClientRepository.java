@@ -108,4 +108,29 @@ public class ClientRepository implements ClientInterface<Client> {
         }
         return false;
     }
+
+    @Override
+    public Optional<Client> findByName(String name) {
+        String sql = "SELECT * FROM clients WHERE name = ?";
+        try (PreparedStatement stmt = cnx.prepareStatement(sql)) {
+            stmt.setString(1, name);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(mapResultSetToClient(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    private Client mapResultSetToClient(ResultSet rs) throws SQLException {
+        Client client = new Client();
+        client.setId(rs.getInt("id"));
+        client.setName(rs.getString("name"));
+        client.setaddress(rs.getString("address"));
+        client.setphone(rs.getString("phone"));
+        client.setProfessional(rs.getBoolean("isProfessional"));
+        return client;
+    }
 }

@@ -25,6 +25,9 @@ public class Project {
         this.client=client;
 
     }
+    public Project(int id){
+        this.id=id;
+    }
 
     public ProjectStatus getStatus() {
         return status;
@@ -92,6 +95,6 @@ public class Project {
                 ", projectname='" + projectName + '\'' +
                 ", profitMargin=" + profitMargin +
                 ", totalCost=" + totalCost +
-                '}';
+                client.toString();
     }
 }

@@ -7,8 +7,8 @@ public class Labor extends Component{
     private double workerProductivity;
 
 
-    public Labor(String name, String componentType, double vatRate, double hourlyRate, double workHours, double workerProductivity) {
-        super(name, componentType, vatRate);
+    public Labor(String name, String componentType, double vatRate,Project project, double hourlyRate, double workHours, double workerProductivity) {
+        super(name, componentType, vatRate,project);
         this.hourlyRate = hourlyRate;
         this.workHours = workHours;
         this.workerProductivity = workerProductivity;

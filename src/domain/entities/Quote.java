@@ -30,6 +30,9 @@ public class Quote {
 
     public Quote() {
     }
+    public Quote(int id){
+        this.id=id;
+    }
 
     public int getId() {
         return id;
