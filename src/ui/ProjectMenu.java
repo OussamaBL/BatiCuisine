@@ -6,6 +6,7 @@ import domain.entities.Project;
 import domain.enums.ProjectStatus;
 import service.ProjectService;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class ProjectMenu {
@@ -107,7 +108,10 @@ public class ProjectMenu {
 
     public void findAll() {
         System.out.println("\n📜 **All Projects** 📜");
-        projectService.findAll();
+        List<Project> listProjects= projectService.findAll();
+        listProjects.forEach(project -> {
+            System.out.println(drawProjectTable(project));
+        });
     }
 
     // Method to draw a simple table header for better presentation

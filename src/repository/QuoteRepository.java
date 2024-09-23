@@ -18,7 +18,7 @@ public class QuoteRepository implements QuoteInterface<Quote> {
     }
     @Override
     public Quote save(Quote devis) {
-        String query = "INSERT INTO quotes (estimatedAmount, issuedate,dateValidity, project_id) VALUES (?,?, ?, ?) RETURNING id";
+        String query = "INSERT INTO quotes (estimated_amount, issuedate,date_validity, project_id) VALUES (?,?, ?, ?) RETURNING id";
         try (PreparedStatement preparedStatement = cnx.prepareStatement(query)) {
             preparedStatement.setDouble(1, devis.getEstimatedAmount());
             preparedStatement.setDate(2, Date.valueOf(devis.getIssueDate()));
@@ -173,10 +173,10 @@ public class QuoteRepository implements QuoteInterface<Quote> {
 
     public Optional<Quote> findDevisByProject(int projectId) {
         String sql = "SELECT q.id,\n" +
-                "       q.estimatedamount,\n" +
+                "       q.estimated_amount,\n" +
                 "       q.issuedate,\n" +
-                "       q.validateddate,\n" +
-                "       q.isaccepted,\n" +
+                "       q.date_validity,\n" +
+                "       q.is_accepted,\n" +
                 "       q.project_id AS project_id,\n" +
                 "       p.id AS prId,\n" +
                 "       p.projectname,\n" +
@@ -201,13 +201,13 @@ public class QuoteRepository implements QuoteInterface<Quote> {
                 project.setClient(client);
 
                 devis.setId(resultSet.getInt("id"));
-                devis.setEstimatedAmount(resultSet.getDouble("estimatedamount"));
+                devis.setEstimatedAmount(resultSet.getDouble("estimated_amount"));
                 devis.setIssueDate(resultSet.getDate("issuedate").toLocalDate());
 
-                Date validatedDate = resultSet.getDate("validateddate");
+                Date validatedDate = resultSet.getDate("date_validity");
                 devis.setDateValidity(validatedDate != null ? validatedDate.toLocalDate() : null);
 
-                devis.setAccepted(resultSet.getBoolean("isaccepted"));
+                devis.setAccepted(resultSet.getBoolean("is_accepted"));
                 devis.setProject(project);
 
                 return Optional.of(devis);
@@ -218,5 +218,17 @@ public class QuoteRepository implements QuoteInterface<Quote> {
 
         return Optional.empty();
     }
-
+    public boolean updateDevisStatus(int id) {
+        String sql = "UPDATE quotes SET is_accepted = true WHERE id = ?";
+        try(PreparedStatement preparedStatement = cnx.prepareStatement(sql)){
+            preparedStatement.setInt(1, id);
+            int result = preparedStatement.executeUpdate();
+            if(result == 1) {
+                return true;
+            }
+        }catch (SQLException sqlException){
+            System.out.println(sqlException.getMessage());
+        }
+        return false;
+    }
 }

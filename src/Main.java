@@ -50,7 +50,10 @@ public class Main {
         QuoteService devisService = new QuoteService(devisRepository);
         DevisMenu devisMenu = new DevisMenu(devisService,projectService);
 
-        PrincipalMenu principalMenu = new PrincipalMenu(projectMenu);
+       // CostMenu costMenu = new CostMenu(projectRepository , componentRepository, materialService , workForceService , devisService, devisMenu);
+        CostMenu costMenu = new CostMenu(projectService , componentService, devisService, devisMenu);
+
+        PrincipalMenu principalMenu = new PrincipalMenu(projectMenu,devisMenu,costMenu);
         principalMenu.Menu();
 
 

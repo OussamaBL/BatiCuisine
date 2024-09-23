@@ -36,4 +36,7 @@ public class QuoteService {
     public Optional<Quote> findQuoteByProject(int id) {
         return this.quoteRepository.findDevisByProject(id);
     }
+    public boolean updateDevisStatus(int id){
+       return quoteRepository.updateDevisStatus(id);
+    }
 }

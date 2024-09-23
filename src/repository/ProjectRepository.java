@@ -53,7 +53,7 @@ public class ProjectRepository implements ProjectInterface<Project> {
 
     @Override
     public Optional<Project> findById(Project project) {
-        String sql = "SELECT * FROM projects WHERE id = ?";
+        String sql = "SELECT p.*,c.* FROM projects p join clients c on p.client_id=c.id WHERE p.id = ?";
         try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
             preparedStatement.setInt(1, project.getId());
             ResultSet rs = preparedStatement.executeQuery();
@@ -61,6 +61,8 @@ public class ProjectRepository implements ProjectInterface<Project> {
             if (rs.next()) {
                 Client client = new Client();
                 client.setId(rs.getInt("client_id"));
+                client.setaddress(rs.getString("address"));
+                client.setName(rs.getString("name"));
                 Project proj = new Project(
                         rs.getInt("id"),
                         rs.getString("projectName"),
@@ -79,7 +81,7 @@ public class ProjectRepository implements ProjectInterface<Project> {
 
     @Override
     public List<Project> findAll() {
-        String sql = "SELECT * FROM projects";
+        String sql = "SELECT p.*,c.* FROM projects p inner join clients c on p.client_id=c.id";
             List<Project> projects = new ArrayList<>();
 
         try (PreparedStatement preparedStatement = cnx.prepareStatement(sql);
@@ -88,6 +90,7 @@ public class ProjectRepository implements ProjectInterface<Project> {
             while (rs.next()) {
                 Client client = new Client();
                 client.setId(rs.getInt("client_id"));
+                client.setName(rs.getString("name"));
                 Project project = new Project(
                         rs.getInt("id"),
                         rs.getString("projectName"),
@@ -165,4 +168,36 @@ public class ProjectRepository implements ProjectInterface<Project> {
 
         return project;
     }
+
+    public void updateMarginAndTotalCost_Project(int id, double marginProfit, double totalCost) {
+        String sql = "UPDATE projects SET profitMargin =? , totalCost = ? WHERE id = ?";
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setDouble(1, marginProfit);
+            preparedStatement.setDouble(2, totalCost);
+            preparedStatement.setInt(3, id);
+            int result = preparedStatement.executeUpdate();
+            if (result == 1) {
+                System.out.println("Project updated successfully");
+            } else {
+                System.out.println("Update failed, project not found");
+            }
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+    }
+    public boolean updateStatus(int id, String status) {
+        String sql = "UPDATE projects SET status = ?::projectStatus  WHERE id = ?";
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setString(1, status);
+            preparedStatement.setInt(2, id);
+            int result = preparedStatement.executeUpdate();
+            if (result == 1) {
+                return true;
+            }
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return false;
+    }
+
 }

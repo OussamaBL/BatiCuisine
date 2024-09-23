@@ -247,4 +247,88 @@ public class ComponentRepository implements ComponentInterface<Component> {
         }
         return true;
     }
+
+    public List<Material> findAllMaterialsByProject(int id) {
+        List<Material> materials = new ArrayList<>();
+        String sql = "SELECT m.id, m.unitCost, m.quantity, m.transportCost, m.qualityCoefficient,\n" +
+                "                m.name, m.vat_rate, m.project_id ,m.component_type \n" +
+                "                FROM materials m \n" +
+                "                WHERE m.project_id = ?";
+
+        try (PreparedStatement statement = cnx.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                Project project = new Project();
+                project.setId(resultSet.getInt("project_id"));
+
+                Material material = new Material();
+                material.setId(resultSet.getInt("id"));
+                material.setUnitCost(resultSet.getDouble("unitCost"));
+                material.setQuantity(resultSet.getDouble("quantity"));
+                material.setTransportCost(resultSet.getDouble("transportCost"));
+                material.setQualityCoefficient(resultSet.getDouble("qualityCoefficient"));
+                material.setName(resultSet.getString("name"));
+                material.setVatRate(resultSet.getDouble("vat_rate"));
+                material.setComponentType(resultSet.getString("component_type"));
+
+                material.setProject(project);
+
+                materials.add(material);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error finding materials by project ID: " + e.getMessage());
+        }
+
+        return materials;
+    }
+    public List<Labor> findAllLaborsByProject(int id) {
+        List<Labor> workforces = new ArrayList<>();
+        String sql = "SELECT l.id, l.hourlyRate, l.workHours, l.workerProductivity, \n" +
+                "l.name, l.vat_rate, l.project_id,l.component_type \n" +
+                "FROM labors l \n" +
+                "WHERE l.project_id = ?";
+
+        try (PreparedStatement preparedStatement = cnx.prepareStatement(sql)) {
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                Project project = new Project();
+                project.setId(resultSet.getInt("project_id"));
+
+                Labor workForce = new Labor();
+                workForce.setId(resultSet.getInt("id"));
+                workForce.setHourlyRate(resultSet.getDouble("hourlyRate"));
+                workForce.setWorkHours(resultSet.getDouble("workHours"));
+                workForce.setWorkerProductivity(resultSet.getDouble("workerProductivity"));
+                workForce.setName(resultSet.getString("name"));
+                workForce.setVatRate(resultSet.getDouble("vat_rate"));
+                workForce.setComponentType(resultSet.getString("component_type"));
+
+                workForce.setProject(project);
+
+                workforces.add(workForce);
+            }
+        } catch (SQLException sqlException) {
+            System.out.println("Error finding all work forces: " + sqlException.getMessage());
+        }
+
+        return workforces;
+    }
+
+    public double findTvaForComponent(int id) {
+        String sql = "SELECT vatRate FROM components WHERE id = ?";
+        try(PreparedStatement preparedStatement = cnx.prepareStatement(sql)){
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if(resultSet.next()) {
+                return resultSet.getDouble("vatRate");
+            }
+        }catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return 0.0;
+    }
 }

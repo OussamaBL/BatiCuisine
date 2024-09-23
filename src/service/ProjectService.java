@@ -39,4 +39,10 @@ public class ProjectService {
     public Project findProjectByName(String name) {
         return this.prp.findProjectByName(name);
     }
+    public void updateMarginAndTotalCost_Project(int id,double marginProfit,double totalCost){
+        prp.updateMarginAndTotalCost_Project(id,marginProfit,totalCost);
+    }
+    public boolean updateStatus(int id,String status){
+        return prp.updateStatus(id,status);
+    }
 }
