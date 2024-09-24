@@ -5,6 +5,7 @@ import domain.entities.Labor;
 import domain.entities.Project;
 import org.postgresql.largeobject.LargeObject;
 import service.ComponentService;
+import utils.CheckInput;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,20 +31,16 @@ public class WorkForceMenu {
             System.out.print("👷 Enter the name of the workforce: ");
             String name = scanner.nextLine();
 
-            System.out.print("📊 Enter the VAT rate of the workforce: ");
-            double vatRate = scanner.nextDouble();
+            double vatRate = CheckInput.readDouble("📊 Enter the VAT rate of the workforce: ");
             scanner.nextLine();
 
-            System.out.print("💰 Enter the hourly rate for this labor (€/h): ");
-            double hourlyRate = scanner.nextDouble();
+            double hourlyRate = CheckInput.readDouble("💰 Enter the hourly rate for this labor (€/h): ");
             scanner.nextLine();
 
-            System.out.print("⏱️ Enter the number of hours worked: ");
-            double hoursWorked = scanner.nextDouble();
+            double hoursWorked = CheckInput.readDouble("⏱️ Enter the number of hours worked: ");
             scanner.nextLine();
 
-            System.out.print("🔧 Enter the productivity factor (1.0 = standard, > 1.0 = high productivity): ");
-            double productivityFactor = scanner.nextDouble();
+            double productivityFactor = CheckInput.readDouble("🔧 Enter the productivity factor (1.0 = standard, > 1.0 = high productivity): ");
             scanner.nextLine();
 
             // Create and save the component

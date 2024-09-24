@@ -9,6 +9,7 @@ import exceptions.QuotesNotFoundException;
 import service.ComponentService;
 import service.ProjectService;
 import service.QuoteService;
+import utils.CheckInput;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -37,14 +38,14 @@ public class CostMenu {
     private static boolean getYesNoInput(String prompt) {
         System.out.print(prompt);
         String input = scanner.next().trim().toLowerCase();
+        scanner.nextLine();
         return input.equals("y") || input.equals("yes");
     }
 
     public void save() {
         System.out.println("--- Total Cost Calculation ---");
 
-        System.out.print("Enter project ID: ");
-        int projectId = scanner.nextInt();
+        int projectId = CheckInput.readInt("Enter project ID: ");
 
         Project project = projectService.findById(new Project(projectId)).orElseThrow(() ->
                 new RuntimeException("Project not found"));
@@ -80,14 +81,13 @@ public class CostMenu {
         double totalCost = totalCostAfterVat;
         double marginRate = 0.0;
         if (getYesNoInput("Do you want to apply a profit margin to the project? (y/n): ")) {
-            System.out.print("Enter profit margin percentage: ");
-            marginRate = scanner.nextDouble();
+            marginRate = CheckInput.readDouble("Enter profit margin percentage: ");
             scanner.nextLine();
             project.setprofitMargin(marginRate);
             totalCost=totalCost+(totalCost*marginRate/100);
         }
 
-        projectService.updateMarginAndTotalCost_Project(projectId, project.getprofitMargin(), totalCost);
+        projectService.updateMarginAndTotalCost_Project(projectId, marginRate, totalCost);
 
 
         System.out.println("\n--- Calculation Result ---");
@@ -108,17 +108,12 @@ public class CostMenu {
             System.out.println("Discounted Total Cost: " + String.format("%.2f", totalCost) + " €");
         }
 
-        System.out.println("\nEnter issue date (yyyy-MM-dd): ");
-        String issue_Date = scanner.nextLine();
-        LocalDate issueDate = LocalDate.parse(issue_Date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        LocalDate issueDate = CheckInput.readDate("\nEnter issue date (yyyy-MM-dd): ");
 
-        System.out.println("\n Enter validated date (yyyy-MM-dd): ");
-        String validated_Date = scanner.nextLine();
-        LocalDate validatedDate = LocalDate.parse(validated_Date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        LocalDate validatedDate = CheckInput.readDate("\n Enter validated date (yyyy-MM-dd): ");
+
         while(validatedDate.isBefore(issueDate)){
-            System.out.println("\nEnter the end date (yyyy-MM-dd): After = "+ issueDate);
-            validated_Date = scanner.nextLine();
-            validatedDate = LocalDate.parse(validated_Date, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            validatedDate = CheckInput.readDate("\nEnter the validated date (yyyy-MM-dd): After = "+ issueDate);
         }
         Quote devis = new Quote(0, totalCost, issueDate, validatedDate, false, project);
         devisService.save(devis);
@@ -148,6 +143,6 @@ public class CostMenu {
         }
     }
 
-    
+
 
 }

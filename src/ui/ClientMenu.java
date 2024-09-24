@@ -3,6 +3,7 @@ package ui;
 import domain.entities.Client;
 import exceptions.ClientNotFoundException;
 import service.ClientService;
+import utils.CheckInput;
 
 import java.util.Optional;
 import java.util.Scanner;
@@ -47,9 +48,11 @@ public class ClientMenu {
         String address = scanner.nextLine();
         System.out.print("📞 Enter the phone number for the client: ");
         String phoneNumber = scanner.nextLine();
-        System.out.print("🛠️ Is the client professional? (true/false): ");
-        boolean status = scanner.nextBoolean();
-        scanner.nextLine();  // Consume the newline
+
+        boolean status= CheckInput.readBool("🛠️ Is the client professional? (true/false): ");
+        /*System.out.print("🛠️ Is the client professional? (true/false): ");
+        boolean status = scanner.nextBoolean();*/
+        //scanner.nextLine();
 
         Client client = new Client(0, name, address, phoneNumber, status);
         Client savedClient = clientService.save(client);

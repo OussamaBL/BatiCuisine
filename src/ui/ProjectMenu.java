@@ -5,6 +5,7 @@ import domain.entities.Material;
 import domain.entities.Project;
 import domain.enums.ProjectStatus;
 import service.ProjectService;
+import utils.CheckInput;
 
 import java.util.List;
 import java.util.Scanner;
@@ -89,13 +90,14 @@ public class ProjectMenu {
             System.out.println("\n" + drawTableHeader("🔨 Add a New Project 🔨"));
             System.out.print("🏗️ Enter the name of the project: ");
             String name = scanner.nextLine();
-            System.out.print("📊 Enter project Profit margin : ");
-            double profitMargin = scanner.nextDouble();
-            scanner.nextLine();
+
+            double profitMargin= CheckInput.readDouble("📊 Enter project Profit margin : ");
+            //scanner.nextLine();
 
             Project project = new Project(0, name, profitMargin, 0,"INPROGRESS", selectedClient);
             Project savedProject = projectService.save(project);
             System.out.println(savedProject);
+
             materialMenu.addMaterial(savedProject);
             workForceMenu.addWorkForce(savedProject);
 

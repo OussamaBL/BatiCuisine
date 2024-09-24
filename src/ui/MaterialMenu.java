@@ -4,6 +4,7 @@ import domain.entities.Component;
 import domain.entities.Material;
 import domain.entities.Project;
 import service.ComponentService;
+import utils.CheckInput;
 
 import java.util.Scanner;
 
@@ -26,21 +27,16 @@ public class MaterialMenu {
             System.out.print("📛 Enter the name of the material: ");
             String name = scanner.nextLine();
 
-            System.out.print("📦 Enter the quantity of this material: ");
-            double quantity = scanner.nextDouble();
+            double quantity = CheckInput.readDouble("📦 Enter the quantity of this material: ");
 
-            System.out.print("💰 Enter the unit cost of the material (€/m² or €/litre): ");
-            double unitCost = scanner.nextDouble();
+            double unitCost = CheckInput.readDouble("💰 Enter the unit cost of the material: ");
 
-            System.out.print("🚚 Enter the transport cost of the material (€): ");
-            double transportCost = scanner.nextDouble();
+            double transportCost = CheckInput.readDouble("🚚 Enter the transport cost of the material (€): ");
 
-            System.out.print("🔧 Enter the quality coefficient of the material (1.0 = standard, > 1.0 = high quality): ");
-            double coefficientQuality = scanner.nextDouble();
+            double coefficientQuality = CheckInput.readDouble("🔧 Enter the quality coefficient of the material (1.0 = standard, > 1.0 = high quality): ");
 
-            System.out.print("📊 Enter the VAT rate of the material: ");
-            double vatRate = scanner.nextDouble();
-            scanner.nextLine();
+            double vatRate = CheckInput.readDouble("📊 Enter the VAT rate of the material: ");
+            //scanner.nextLine();
 
             material = new Material(name,"MATERIAL",vatRate,project,unitCost,quantity,transportCost,coefficientQuality);
 

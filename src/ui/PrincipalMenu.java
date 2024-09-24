@@ -30,7 +30,7 @@ public class PrincipalMenu {
             System.out.print("👉 Please select an option (1-4): ");
 
             int choice = scanner.nextInt();
-            scanner.nextLine();  // Consume the newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:
